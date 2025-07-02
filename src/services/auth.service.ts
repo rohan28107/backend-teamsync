@@ -159,22 +159,68 @@ export const registerUserService = async (body: {
   }
 };
 
+// export const verifyUserService = async ({
+//   id,
+//   email,
+//   password,
+//   provider = ProviderEnum.EMAIL,
+// }: {
+//   id?: string;
+//   email: string;
+//   password: string;
+//   provider?: string;
+// }) => {
+//   const account = await AccountModel.findOne({ provider, providerId: email });
+//   if (!account) {
+//     throw new NotFoundException("Invalid email or password");
+//   }
+
+//   const user = await UserModel.findById(account.userId);
+
+//   if (!user) {
+//     throw new NotFoundException("User not found for the given account");
+//   }
+
+//   const isMatch = await user.comparePassword(password);
+//   if (!isMatch) {
+//     throw new UnauthorizedException("Invalid email or password");
+//   }
+
+//   return user.omitPassword();
+// };
+
+
 export const verifyUserService = async ({
+  id,
   email,
   password,
   provider = ProviderEnum.EMAIL,
 }: {
-  email: string;
-  password: string;
+  id?: string;
+  email?: string;
+  password?: string;
   provider?: string;
 }) => {
+  // Case 1: Fetch user by ID (for deserialization)
+  if (id) {
+    const user = await UserModel.findById(id);
+    if (!user) {
+      throw new NotFoundException("User not found");
+    }
+    return user;
+  }
+
+  // Case 2: Validate login using email/password (for login flow)
+  if (!email || !password) {
+    throw new BadRequestException("Email and password are required");
+  }
+
   const account = await AccountModel.findOne({ provider, providerId: email });
   if (!account) {
     throw new NotFoundException("Invalid email or password");
   }
 
   const user = await UserModel.findById(account.userId);
-
   if (!user) {
     throw new NotFoundException("User not found for the given account");
   }

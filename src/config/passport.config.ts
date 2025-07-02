@@ -62,5 +62,18 @@ passport.use(
   )
 );
 
-passport.serializeUser((user: any, done) => done(null, user));
-passport.deserializeUser((user: any, done) => done(null, user));
+// passport.serializeUser((user: any, done) => done(null, user));
+// passport.deserializeUser((user: any, done) => done(null, user));
+passport.serializeUser((user: any, done) => {
+  done(null, user._id); // store only the ID in session
+});
+
+passport.deserializeUser(async (id: string, done) => {
+  try {
+    const user = await verifyUserService({ id }); // or UserModel.findById(id)
+    done(null, user);
+  } catch (error) {
+    done(error, null);
+  }
+});
+
